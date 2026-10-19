@@ -1,54 +1,993 @@
-<!doctype html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50 text-slate-800 selection:bg-emerald-500 selection:text-white">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#14253b" />
-  <meta name="description" content="Registro personal de alimentación, actividad física, peso y suplementos." />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" type="image/svg+xml" href="/icon.svg" />
-  <title>Impulso · Nutrición y fútbol</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTracker Pro - Dashboard de Salud & Deporte</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js Plugin (Persist) & Core -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        [x-cloak] { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
 </head>
-<body class="antialiased" x-data="fitApp()" x-init="init()">
-<div class="min-h-screen lg:flex">
-  <aside class="hidden lg:flex lg:w-64 lg:shrink-0 lg:flex-col bg-white border-r border-slate-200 px-5 py-7">
-    <div class="flex items-center gap-3 px-3 mb-11"><div class="bg-ink text-white rounded-2xl w-11 h-11 grid place-items-center text-xl">↗</div><div><div class="text-xl font-black tracking-tight">impulso<span class="text-mint">.</span></div><div class="text-[11px] tracking-widest uppercase text-slate-400">Tu progreso diario</div></div></div>
-    <nav class="space-y-1">
-      <template x-for="item in tabs" :key="item.id"><button type="button" class="navitem w-full text-left" :class="tab===item.id?'navactive':''" @click="tab=item.id"><span class="text-lg" x-text="item.icon"></span><span x-text="item.name"></span></button></template>
-    </nav>
-    <div class="mt-auto panel bg-slate-50 p-4"><div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Modo de datos</div><p class="mt-2 text-sm font-medium" x-text="connected?'Sincronizado con Supabase':'Guardado en este dispositivo'"></p><button class="mt-3 text-xs font-bold text-emerald-700 underline" @click="tab='ajustes'" x-text="connected?'Ver cuenta':'Configurar sincronización'"></button></div>
-  </aside>
-  <main class="flex-1 min-w-0 pb-28 lg:pb-12">
-    <header class="bg-white/90 backdrop-blur border-b border-slate-200 px-5 lg:px-10 py-5 flex items-center justify-between gap-3 sticky top-0 z-20">
-      <div><div class="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-600" x-text="todayLabel()"></div><h1 class="text-xl lg:text-2xl font-extrabold tracking-tight" x-text="tabs.find(x=>x.id===tab)?.name"></h1></div>
-      <div class="flex items-center gap-2"><span class="hidden sm:inline text-xs text-slate-500" x-text="connected?'☁ Sincronizado':'● Modo local'"></span><button class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-bold" @click="tab='ajustes'">YO</button></div>
-    </header>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 pt-7 space-y-6">
-      <div x-show="message" x-cloak class="rounded-xl px-4 py-3 text-sm bg-emerald-50 text-emerald-800 border border-emerald-100" role="status" x-text="message"></div>
-      <section x-show="tab==='inicio'" class="space-y-6">
-        <div class="rounded-3xl bg-ink text-white p-6 sm:p-8 relative overflow-hidden"><div class="absolute -right-14 -top-24 w-64 h-64 rounded-full bg-mint/20"></div><div class="relative"><p class="text-sm text-slate-300">Tu objetivo de hoy</p><h2 class="text-3xl sm:text-4xl font-extrabold mt-2"><span x-text="fmt(remaining())"></span> <span class="text-lg font-normal text-slate-300">kcal restantes</span></h2><div class="mt-5 h-3 rounded-full bg-white/15 overflow-hidden"><div class="h-full rounded-full bg-mint transition-all" :style="`width:${Math.min(100,Math.max(0,calories()/goal().calories*100))}%`"></div></div><div class="flex justify-between text-xs text-slate-300 mt-2"><span><strong class="text-white" x-text="fmt(calories())"></strong> consumidas</span><span><strong class="text-white" x-text="fmt(goal().calories)"></strong> objetivo</span></div></div></div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <template x-for="m in macroCards()" :key="m.label"><div class="panel p-4 sm:p-5"><div class="text-xs text-slate-500" x-text="m.label"></div><div class="text-xl sm:text-2xl font-black mt-2"><span x-text="fmt(m.value)"></span><span class="text-xs text-slate-400 font-medium"> / <span x-text="m.goal"></span> g</span></div><div class="h-1.5 bg-slate-100 rounded-full mt-4 overflow-hidden"><div class="h-full rounded-full" :class="m.color" :style="`width:${Math.min(100,m.value/m.goal*100)}%`"></div></div></div></template>
-          <div class="panel p-4 sm:p-5"><div class="text-xs text-slate-500">Peso actual</div><div class="text-xl sm:text-2xl font-black mt-2"><span x-text="fmt(latestWeight(),2)"></span> <span class="text-xs text-slate-400">kg</span></div><p class="mt-4 text-xs text-slate-400">Último registro</p></div>
-        </div>
-        <div class="grid lg:grid-cols-5 gap-5"><div class="lg:col-span-3 panel p-5 sm:p-6"><div class="flex justify-between items-center"><div><h3 class="font-bold text-lg">Comidas de hoy</h3><p class="text-xs text-slate-400 mt-1">Registra lo que realmente comiste</p></div><button class="btn-primary !py-2" @click="tab='comidas';showFood=true">+ Agregar</button></div><div class="mt-5 space-y-3"><template x-for="food in todayFoods()" :key="food.id"><div class="flex gap-3 items-center rounded-xl bg-slate-50 p-3"><div class="w-10 h-10 rounded-xl bg-white grid place-items-center">🍽️</div><div class="min-w-0 flex-1"><p class="font-semibold text-sm truncate" x-text="food.name"></p><p class="text-xs text-slate-400" x-text="food.meal+' · '+food.protein+' g proteína'"></p></div><span class="font-bold text-sm" x-text="fmt(food.calories)+' kcal'"></span><button class="text-slate-400 hover:text-red-600 px-1" aria-label="Eliminar comida" @click="remove('foods',food.id)">×</button></div></template><div x-show="todayFoods().length===0" class="text-center py-8 text-sm text-slate-400">Aún no registras comidas hoy. Puedes añadir tu desayuno desde «Comidas».</div></div></div>
-          <div class="lg:col-span-2 panel p-5 sm:p-6"><div class="flex justify-between items-center"><h3 class="font-bold text-lg">Suplementos</h3><span class="tag bg-emerald-50 text-emerald-700">Rutina</span></div><p class="text-xs text-slate-400 mt-1">Marca únicamente los que hayas tomado</p><div class="mt-5 space-y-4"><template x-for="s in supplements" :key="s.id"><label class="flex gap-3 items-center cursor-pointer"><input type="checkbox" class="w-5 h-5 accent-emerald-600" :checked="takenToday(s.id)" @change="toggleSupplement(s.id)"><div class="flex-1"><div class="text-sm font-semibold" x-text="s.name"></div><div class="text-xs text-slate-400" x-text="s.note"></div></div></label></template></div><p class="text-[11px] text-slate-400 mt-5">Zinc, magnesio y omega-3: confirmar dosis en las etiquetas antes de usar.</p></div></div>
-        <div class="panel p-5 sm:p-6"><div class="flex justify-between items-center"><div><h3 class="font-bold text-lg">Actividad física</h3><p class="text-xs text-slate-400">Fútbol, entrenamiento y recuperación</p></div><button class="btn-light !py-2" @click="tab='actividad'">Registrar →</button></div><div class="mt-4 flex gap-3 items-center"><span class="text-3xl">⚽</span><p class="text-sm text-slate-600" x-text="todayActivities().length?todayActivities().map(a=>a.name+' · '+a.minutes+' min').join(', '):'Sin actividades registradas hoy'"></p></div></div>
-      </section>
-      <section x-show="tab==='comidas'" x-cloak class="space-y-5"><div class="flex justify-between items-center"><div><h2 class="text-xl font-extrabold">Diario de alimentación</h2><p class="text-sm text-slate-500">Controla porciones y macros</p></div><button class="btn-primary" @click="showFood=!showFood" x-text="showFood?'Cerrar':' + Nueva comida'"></button></div>
-        <form x-show="showFood" @submit.prevent="addFood()" class="panel p-5 grid sm:grid-cols-2 gap-4"><div class="sm:col-span-2"><label class="text-xs font-semibold">Alimento / preparación</label><input class="field mt-1" x-model="foodForm.name" required maxlength="120" placeholder="Ej. 2 huevos revueltos"></div><div><label class="text-xs font-semibold">Momento</label><select class="field mt-1" x-model="foodForm.meal"><option>Desayuno</option><option>Almuerzo</option><option>Once</option><option>Cena</option><option>Colación</option></select></div><div><label class="text-xs font-semibold">Calorías (kcal)</label><input class="field mt-1" type="number" min="0" max="10000" step="0.1" required x-model.number="foodForm.calories"></div><div><label class="text-xs font-semibold">Proteínas (g)</label><input class="field mt-1" type="number" min="0" max="1000" step="0.1" required x-model.number="foodForm.protein"></div><div><label class="text-xs font-semibold">Carbohidratos (g)</label><input class="field mt-1" type="number" min="0" max="1000" step="0.1" required x-model.number="foodForm.carbs"></div><div><label class="text-xs font-semibold">Grasas (g)</label><input class="field mt-1" type="number" min="0" max="1000" step="0.1" required x-model.number="foodForm.fat"></div><div class="sm:col-span-2 flex flex-wrap gap-2"><button type="submit" class="btn-primary">Guardar comida</button><button type="button" class="btn-light" @click="loadBreakfast()">Precargar desayuno de hoy</button></div></form>
-        <div class="panel p-5"><div class="font-bold mb-4">Registro del día · <span x-text="dateKey()"></span></div><template x-for="food in todayFoods()" :key="food.id"><div class="flex items-center justify-between gap-2 py-3 border-b border-slate-100"><div><div class="font-semibold text-sm" x-text="food.name"></div><div class="text-xs text-slate-400" x-text="`${food.meal} · P ${food.protein} g · C ${food.carbs} g · G ${food.fat} g`"></div></div><div class="flex items-center gap-3"><b class="text-sm" x-text="food.calories+' kcal'"></b><button class="text-red-500" @click="remove('foods',food.id)" aria-label="Eliminar">Eliminar</button></div></div></template><p x-show="!todayFoods().length" class="text-sm text-slate-400 py-4">Sin comidas registradas.</p></div>
-      </section>
-      <section x-show="tab==='peso'" x-cloak class="space-y-5"><div><h2 class="text-xl font-extrabold">Evolución de peso</h2><p class="text-sm text-slate-500">Usa la misma balanza y condiciones para comparar</p></div><div class="grid md:grid-cols-2 gap-5"><form class="panel p-5 space-y-4" @submit.prevent="addWeight()"><label class="block text-sm font-bold">Nuevo peso (kg)</label><input class="field" type="number" min="20" max="400" step="0.01" x-model.number="weightForm" required><button class="btn-primary w-full">Registrar peso</button></form><div class="panel p-5"><p class="text-sm text-slate-500">Peso más reciente</p><div class="text-4xl font-extrabold mt-2"><span x-text="fmt(latestWeight(),2)"></span> <span class="text-lg text-slate-400">kg</span></div><p class="text-xs text-slate-400 mt-2">Peso inicial de referencia: 86,40 kg</p></div></div><div class="panel p-5"><h3 class="font-bold mb-3">Historial</h3><template x-for="w in sortedWeights()" :key="w.id"><div class="flex justify-between items-center border-b border-slate-100 py-3 text-sm"><span x-text="w.day"></span><div class="flex gap-4 items-center"><strong x-text="fmt(w.kg,2)+' kg'"></strong><button class="text-red-500" @click="remove('weights',w.id)">Eliminar</button></div></div></template></div></section>
-      <section x-show="tab==='actividad'" x-cloak class="space-y-5"><div><h2 class="text-xl font-extrabold">Entrenamientos</h2><p class="text-sm text-slate-500">Para mejorar tu rendimiento sin sobreentrenar</p></div><form class="panel p-5 grid sm:grid-cols-2 gap-4" @submit.prevent="addActivity()"><div><label class="text-xs font-bold">Actividad</label><select class="field mt-1" x-model="activityForm.name"><option>Fútbol</option><option>Fuerza</option><option>Caminata</option><option>Cardio</option><option>Movilidad</option><option>Otra</option></select></div><div><label class="text-xs font-bold">Duración (min)</label><input class="field mt-1" type="number" min="1" max="600" x-model.number="activityForm.minutes" required></div><div class="sm:col-span-2"><label class="text-xs font-bold">Notas (opcional)</label><input class="field mt-1" x-model="activityForm.notes" maxlength="300" placeholder="Intensidad, sensaciones, molestias..."></div><button class="btn-primary sm:col-span-2">Guardar entrenamiento</button></form><div class="panel p-5"><h3 class="font-bold mb-3">Actividades recientes</h3><template x-for="a in sortedActivities()" :key="a.id"><div class="flex justify-between gap-3 py-3 border-b border-slate-100"><div><p class="font-semibold text-sm" x-text="a.name+' · '+a.minutes+' min'"></p><p class="text-xs text-slate-400" x-text="a.day+(a.notes?' · '+a.notes:'')"></p></div><button class="text-xs text-red-500" @click="remove('activities',a.id)">Eliminar</button></div></template><p x-show="!activities.length" class="text-sm text-slate-400">Todavía no hay actividades.</p></div></section>
-      <section x-show="tab==='ajustes'" x-cloak class="space-y-5"><div><h2 class="text-xl font-extrabold">Objetivos y cuenta</h2><p class="text-sm text-slate-500">Personaliza tus metas y sincroniza los datos</p></div><form class="panel p-5 grid sm:grid-cols-2 gap-4" @submit.prevent="saveGoals()"><div><label class="text-xs font-bold">Días sin fútbol · kcal</label><input class="field mt-1" type="number" min="1200" max="6000" x-model.number="settings.restCalories" required></div><div><label class="text-xs font-bold">Días con fútbol · kcal</label><input class="field mt-1" type="number" min="1200" max="6000" x-model.number="settings.footballCalories" required></div><div><label class="text-xs font-bold">Proteína · g/día</label><input class="field mt-1" type="number" min="20" max="350" x-model.number="settings.protein" required></div><div><label class="text-xs font-bold">Carbohidratos · g/día</label><input class="field mt-1" type="number" min="20" max="700" x-model.number="settings.carbs" required></div><div><label class="text-xs font-bold">Grasas · g/día</label><input class="field mt-1" type="number" min="20" max="200" x-model.number="settings.fat" required></div><div><label class="text-xs font-bold">Objetivo de hoy</label><select class="field mt-1" x-model="settings.todayMode"><option value="rest">Día sin fútbol</option><option value="football">Día con fútbol</option></select></div><button class="btn-primary sm:col-span-2">Guardar objetivos</button></form>
-        <div class="panel p-5 space-y-4"><div><h3 class="font-bold">Sincronización privada</h3><p class="text-sm text-slate-500 mt-1">Sin Supabase configurado, todo queda solo en este navegador. Si borras sus datos, podrías perder el registro.</p></div><div x-show="!configured" class="rounded-xl bg-amber-50 text-amber-900 p-3 text-sm">Para habilitar cuenta y nube, configura las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en Netlify.</div><template x-if="configured && !connected"><form @submit.prevent="signIn()" class="space-y-3"><input class="field" type="email" autocomplete="email" placeholder="Correo electrónico" x-model="auth.email" required><input class="field" type="password" autocomplete="current-password" minlength="6" placeholder="Contraseña" x-model="auth.password" required><div class="flex flex-wrap gap-2"><button class="btn-primary" type="submit" :disabled="busy">Ingresar</button><button class="btn-light" type="button" :disabled="busy" @click="signUp()">Crear cuenta</button></div><p class="text-xs text-slate-500">Al iniciar sesión, se cargan los datos de tu cuenta. Los registros locales no se suben automáticamente.</p></form></template><template x-if="connected"><div class="flex flex-wrap items-center justify-between gap-2"><p class="text-sm">Sesión iniciada: <strong x-text="userEmail"></strong></p><button class="btn-light" @click="signOut()">Cerrar sesión</button></div></template><p x-show="authError" class="text-sm text-red-600" x-text="authError"></p></div>
-        <div class="panel p-5 space-y-3"><h3 class="font-bold">Respaldo de información</h3><p class="text-sm text-slate-500">Exporta tus registros a JSON. El archivo puede contener datos personales de salud: guárdalo de forma privada.</p><button class="btn-light" @click="exportData()">↓ Exportar respaldo JSON</button></div>
-      </section>
+<body class="h-full bg-slate-50 antialiased text-slate-800" x-data="appData()" x-init="initApp()">
+
+    <div class="min-h-full flex flex-col pb-24 md:pb-8">
+        <!-- Top Navigation Header -->
+        <header class="bg-white/90 border-b border-slate-200 backdrop-blur-md sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-black shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-heart-pulse text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-slate-900 leading-none">FitTracker <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">PRO</span></h1>
+                        <p class="text-xs text-slate-500 mt-0.5">Control de Salud, Nutrición & Fútbol</p>
+                    </div>
+                </div>
+
+                <!-- Settings / Actions Menu -->
+                <div class="flex items-center space-x-2" x-data="{ openSettings: false }">
+                    <button @click="openQuickFootballModal = true" class="hidden sm:flex items-center space-x-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+                        <i class="fa-solid fa-futbol"></i>
+                        <span>+ Partido Fútbol</span>
+                    </button>
+                    <div class="relative">
+                        <button @click="openSettings = !openSettings" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition border border-slate-200">
+                            <i class="fa-solid fa-gear text-sm"></i>
+                        </button>
+                        <div x-show="openSettings" @click.outside="openSettings = false" x-cloak
+                             class="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 text-slate-700 z-50">
+                            <div class="px-4 py-2 border-b border-slate-100">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gestión de Datos</p>
+                            </div>
+                            <button @click="exportData(); openSettings = false" class="w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 flex items-center space-x-2 text-slate-700">
+                                <i class="fa-solid fa-download text-emerald-600"></i>
+                                <span>Exportar Respaldos (JSON)</span>
+                            </button>
+                            <label class="w-full text-left px-4 py-2.5 text-xs hover:bg-slate-50 flex items-center space-x-2 text-slate-700 cursor-pointer">
+                                <i class="fa-solid fa-upload text-blue-600"></i>
+                                <span>Importar Respaldos (JSON)</span>
+                                <input type="file" @change="importData($event); openSettings = false" class="hidden" accept=".json">
+                            </label>
+                            <div class="border-t border-slate-100 my-1"></div>
+                            <button @click="resetData(); openSettings = false" class="w-full text-left px-4 py-2.5 text-xs hover:bg-rose-50 text-rose-600 flex items-center space-x-2">
+                                <i class="fa-solid fa-arrow-rotate-left text-rose-500"></i>
+                                <span>Restablecer Datos Demo</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Wrapper -->
+        <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-6 flex-1 space-y-6">
+            
+            <!-- Desktop Tab Bar -->
+            <div class="hidden md:flex space-x-1 p-1 bg-white rounded-2xl border border-slate-200 shadow-sm max-w-2xl">
+                <template x-for="tab in tabs" :key="tab.id">
+                    <button @click="activeTab = tab.id" 
+                            :class="activeTab === tab.id ? 'bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/20' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                            class="flex-1 py-2 px-4 rounded-xl text-xs transition-all duration-200 flex items-center justify-center space-x-2">
+                        <i :class="tab.icon"></i>
+                        <span x-text="tab.name"></span>
+                    </button>
+                </template>
+            </div>
+
+            <!-- TAB 1: DASHBOARD & KPIS -->
+            <div x-show="activeTab === 'dashboard'" x-transition:enter.duration.300ms class="space-y-6">
+                
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 p-6 rounded-3xl text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg shadow-emerald-500/10">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-white">¡Hola de nuevo! 👋</h2>
+                        <p class="text-xs text-emerald-100 mt-1">Resumen general de tu rendimiento físico y metas personales.</p>
+                    </div>
+                    <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20">
+                        <div class="text-right">
+                            <span class="text-[10px] text-emerald-100 block uppercase tracking-wider font-semibold">Meta de Fútbol Semanal</span>
+                            <span class="text-sm font-bold text-white" x-text="weeklyFootballCount + ' / 2 Partidos ' + (weeklyFootballCount >= 2 ? '✅ Meta Cumplida' : '')"></span>
+                        </div>
+                        <button @click="openQuickFootballModal = true" class="p-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-bold transition shadow-md">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary KPI Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Current Weight Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Peso Actual</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-weight-scale"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex items-baseline space-x-1">
+                                <span class="text-2xl font-black text-slate-900" x-text="latestWeight ? latestWeight + ' kg' : '--'"></span>
+                            </div>
+                            <div class="mt-2 flex items-center text-xs font-semibold" :class="weightChangeFromStart <= 0 ? 'text-emerald-600' : 'text-rose-600'" x-show="weightLogs.length > 0">
+                                <i class="fa-solid text-[10px] mr-1" :class="weightChangeFromStart <= 0 ? 'fa-arrow-down' : 'fa-arrow-up'"></i>
+                                <span x-text="Math.abs(weightChangeFromStart).toFixed(1) + ' kg (' + Math.abs(weightChangePercent).toFixed(1) + '%)'"></span>
+                                <span class="text-[10px] text-slate-400 ml-1">vs inicio</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BMI / Talla Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">IMC / Estado Nutricional</span>
+                            <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-ruler-vertical"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex items-baseline space-x-2">
+                                <span class="text-2xl font-black text-slate-900" x-text="bmi ? bmi : '--'"></span>
+                                <span class="text-xs text-slate-400" x-text="'(' + height + ' cm)'"></span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border shadow-sm" :class="bmiBadgeClass" x-text="bmiCategory || 'Sin Datos'"></span>
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-2 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-info text-teal-500"></i> Normativa MINSAL Chile / OMS
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Daily Calories KPI -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Calorías Hoy</span>
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-fire"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex items-baseline space-x-1">
+                                <span class="text-2xl font-black text-slate-900" x-text="todayCalories"></span>
+                                <span class="text-xs text-slate-400" x-text="'/ ' + calorieGoal + ' kcal'"></span>
+                            </div>
+                            <!-- Calorie Progress Bar -->
+                            <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500" 
+                                     :class="todayCalories > calorieGoal ? 'bg-rose-500' : 'bg-amber-500'" 
+                                     :style="`width: ${Math.min((todayCalories / calorieGoal) * 100, 100)}%`"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weight Variation & Trend KPI -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Velocidad / Sem.</span>
+                            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex items-baseline space-x-1">
+                                <span class="text-2xl font-black text-slate-900" x-text="(weeklyWeightRate > 0 ? '+' : '') + weeklyWeightRate.toFixed(2)"></span>
+                                <span class="text-xs text-slate-400">kg/sem</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2" x-text="'Último cambio: ' + (weightChangeFromLast > 0 ? '+' : '') + weightChangeFromLast.toFixed(1) + ' kg'"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Chart & Nutrition Breakdown -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Chart.js Weight Graph -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-base">Evolución del Peso</h3>
+                                <p class="text-xs text-slate-500">Tendencia histórica de tus mediciones corporales</p>
+                            </div>
+                            <span class="text-xs text-emerald-700 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">Gráfico Interactivo</span>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Today's Macro Breakdown -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-900 text-base">Macronutrientes Hoy</h3>
+                                <button @click="activeTab = 'food'" class="text-xs text-emerald-600 font-semibold hover:underline">Ver Alimentos</button>
+                            </div>
+
+                            <div class="space-y-4">
+                                <!-- Proteins -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-600 font-semibold"><i class="fa-solid fa-drumstick-bite text-rose-500 mr-1.5"></i>Proteínas</span>
+                                        <span class="text-slate-900 font-bold" x-text="todayMacros.protein + ' g'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-rose-500 h-full rounded-full transition-all duration-500" :style="`width: ${Math.min((todayMacros.protein / 150) * 100, 100)}%`"></div>
+                                    </div>
+                                </div>
+                                <!-- Carbs -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-600 font-semibold"><i class="fa-solid fa-wheat-awn text-amber-500 mr-1.5"></i>Carbohidratos</span>
+                                        <span class="text-slate-900 font-bold" x-text="todayMacros.carbs + ' g'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-amber-500 h-full rounded-full transition-all duration-500" :style="`width: ${Math.min((todayMacros.carbs / 250) * 100, 100)}%`"></div>
+                                    </div>
+                                </div>
+                                <!-- Fats -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-600 font-semibold"><i class="fa-solid fa-cubes-stacked text-emerald-500 mr-1.5"></i>Grasas</span>
+                                        <span class="text-slate-900 font-bold" x-text="todayMacros.fats + ' g'"></span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" :style="`width: ${Math.min((todayMacros.fats / 70) * 100, 100)}%`"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex justify-between items-center text-xs">
+                            <span class="text-slate-500 font-medium">Total Entrenamientos:</span>
+                            <span class="font-bold text-slate-900" x-text="workoutLogs.length + ' Sesiones'"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: UNIFIED ACTIVITY LOG -->
+            <div x-show="activeTab === 'timeline'" x-transition:enter.duration.300ms class="space-y-6">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">Historial Completo de Actividades</h3>
+                            <p class="text-xs text-slate-500">Muro cronológico unificado con todos tus eventos registrados</p>
+                        </div>
+                        
+                        <!-- Timeline Filters -->
+                        <div class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                            <button @click="timelineFilter = 'all'" :class="timelineFilter === 'all' ? 'bg-white text-slate-900 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg transition">Todos</button>
+                            <button @click="timelineFilter = 'weight'" :class="timelineFilter === 'weight' ? 'bg-white text-slate-900 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg transition">Peso</button>
+                            <button @click="timelineFilter = 'food'" :class="timelineFilter === 'food' ? 'bg-white text-slate-900 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg transition">Nutrición</button>
+                            <button @click="timelineFilter = 'workout'" :class="timelineFilter === 'workout' ? 'bg-white text-slate-900 font-bold shadow-sm' : 'text-slate-500 hover:text-slate-900'" class="px-3 py-1.5 rounded-lg transition">Fútbol / Deporte</button>
+                        </div>
+                    </div>
+
+                    <!-- Timeline List -->
+                    <div class="relative border-l-2 border-slate-200 ml-4 space-y-6 pl-6 my-4">
+                        <template x-if="filteredTimeline.length === 0">
+                            <p class="text-sm text-slate-400 py-6 italic">No hay actividades registradas en este filtro.</p>
+                        </template>
+
+                        <template x-for="item in filteredTimeline" :key="item.uniqueId">
+                            <div class="relative group">
+                                <!-- Type Icon Badge -->
+                                <div class="absolute -left-[37px] top-1.5 w-7 h-7 rounded-full flex items-center justify-center text-xs border-2 border-white shadow-sm"
+                                     :class="{
+                                         'bg-emerald-500 text-white': item.category === 'weight',
+                                         'bg-amber-500 text-white': item.category === 'food',
+                                         'bg-blue-600 text-white': item.category === 'workout'
+                                     }">
+                                    <i class="fa-solid" :class="{
+                                        'fa-weight-scale': item.category === 'weight',
+                                        'fa-utensils': item.category === 'food',
+                                        'fa-futbol': item.category === 'workout' && item.type === 'Partido de Fútbol',
+                                        'fa-dumbbell': item.category === 'workout' && item.type !== 'Partido de Fútbol'
+                                    }"></i>
+                                </div>
+
+                                <!-- Activity Content Card -->
+                                <div class="bg-slate-50 border border-slate-200 hover:border-slate-300 p-4 rounded-2xl flex items-center justify-between transition shadow-sm">
+                                    <div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs font-bold text-slate-900" x-text="item.title"></span>
+                                            <span class="text-[10px] px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-500 font-medium" x-text="formatDate(item.date)"></span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1" x-text="item.subtitle"></p>
+                                    </div>
+                                    <button @click="deleteItem(item)" class="text-slate-400 hover:text-rose-500 p-2 transition">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: WEIGHT & BODY METRICS -->
+            <div x-show="activeTab === 'weight'" x-transition:enter.duration.300ms class="space-y-6">
+                <!-- Settings + Entry Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Form Weight Entry -->
+                    <div class="md:col-span-2 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+                        <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-plus-circle text-emerald-500"></i>
+                            <span>Nuevo Registro de Peso y Talla</span>
+                        </h3>
+                        <form @submit.prevent="addWeightLog()" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Peso (kg)</label>
+                                <input type="number" step="0.1" x-model.number="newWeight.value" required placeholder="Ej: 74.5" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Fecha</label>
+                                <input type="date" x-model="newWeight.date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition">
+                            </div>
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm transition shadow-md shadow-emerald-500/20">
+                                    Guardar Peso
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Height Setup Card -->
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+                        <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-ruler-vertical text-teal-500"></i>
+                            <span>Ajustar Estatura</span>
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Talla / Estatura (cm)</label>
+                            <div class="flex gap-2">
+                                <input type="number" x-model.number="height" placeholder="175" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-teal-500 focus:bg-white transition">
+                                <button @click="updateChart()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition border border-slate-200">
+                                    OK
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-2">Utilizada para calcular automáticamente tu IMC actual.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weight History Table -->
+                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">Historial de Mediciones</h3>
+                            <p class="text-xs text-slate-500">Estado Nutricional según clasificación de salud chilena (MINSAL / OMS)</p>
+                        </div>
+                        <span class="text-xs text-slate-400" x-text="weightLogs.length + ' registros'"></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-semibold">
+                                <tr>
+                                    <th class="px-5 py-3.5">Fecha</th>
+                                    <th class="px-5 py-3.5">Peso (kg)</th>
+                                    <th class="px-5 py-3.5">IMC y Diagnóstico Nutricional (MINSAL)</th>
+                                    <th class="px-5 py-3.5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700">
+                                <template x-if="weightLogs.length === 0">
+                                    <tr>
+                                        <td colspan="4" class="px-5 py-8 text-center text-slate-400">Sin registros de peso guardados.</td>
+                                    </tr>
+                                </template>
+                                <template x-for="log in sortedWeightLogs" :key="log.id">
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-5 py-3.5 font-medium text-slate-900" x-text="formatDate(log.date)"></td>
+                                        <td class="px-5 py-3.5 font-extrabold text-slate-900" x-text="log.value + ' kg'"></td>
+                                        <td class="px-5 py-3.5">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-extrabold text-slate-900" x-text="calculateBMI(log.value) || '--'"></span>
+                                                <span class="px-2.5 py-0.5 rounded-full font-extrabold text-[10px] border" :class="getBmiInfo(calculateBMI(log.value)).badgeClass" x-text="getBmiInfo(calculateBMI(log.value)).category"></span>
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-3.5 text-right">
+                                            <button @click="deleteWeightLog(log.id)" class="text-slate-400 hover:text-rose-500 p-1">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- MINSAL Reference Footer Legend -->
+                    <div class="p-4 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500">
+                        <p class="font-bold text-slate-700 mb-1">Referencia Criterios IMC Adultos (Norma Técnica MINSAL / OMS Chile):</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-[10px] mt-2">
+                            <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg">&lt; 18.5: Bajo peso</span>
+                            <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">18.5 - 24.9: Normal</span>
+                            <span class="px-2 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">25.0 - 29.9: Sobrepeso</span>
+                            <span class="px-2 py-1 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg">30.0 - 34.9: Obesidad I</span>
+                            <span class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg">35.0 - 39.9: Obesidad II</span>
+                            <span class="px-2 py-1 bg-red-100 text-red-800 border border-red-300 rounded-lg">≥ 40.0: Obesidad III</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: FOOD & NUTRITION -->
+            <div x-show="activeTab === 'food'" x-transition:enter.duration.300ms class="space-y-6">
+                <!-- Add Food Form -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-utensils text-amber-500"></i>
+                        <span>Registrar Alimento o Comida</span>
+                    </h3>
+                    <form @submit.prevent="addFoodLog()" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Nombre Alimento</label>
+                                <input type="text" x-model="newFood.name" required placeholder="Ej: Pechuga a la Plancha" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Tipo de Comida</label>
+                                <select x-model="newFood.mealType" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                                    <option value="Desayuno">Desayuno</option>
+                                    <option value="Almuerzo">Almuerzo</option>
+                                    <option value="Cena">Cena</option>
+                                    <option value="Snack">Snack</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Porción / Cantidad</label>
+                                <input type="text" x-model="newFood.portion" placeholder="Ej: 200g o 1 plato" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                        </div>
+
+                        <!-- Calories & Macros -->
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-amber-600 mb-1">Calorías (kcal)</label>
+                                <input type="number" x-model.number="newFood.calories" required placeholder="350" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Proteínas (g)</label>
+                                <input type="number" x-model.number="newFood.protein" placeholder="30" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Carbos (g)</label>
+                                <input type="number" x-model.number="newFood.carbs" placeholder="40" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Grasas (g)</label>
+                                <input type="number" x-model.number="newFood.fats" placeholder="10" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Fecha</label>
+                                <input type="date" x-model="newFood.date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm transition shadow-md shadow-amber-500/20">
+                            + Agregar Alimento
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Daily Breakdown -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h3 class="font-bold text-slate-900 text-base">Desglose por Categoría de Comida</h3>
+                        <div class="flex items-center space-x-3">
+                            <input type="date" x-model="selectedFoodDate" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900">
+                            <span class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 font-extrabold text-xs border border-amber-200" x-text="selectedDateCalories + ' kcal'"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <template x-for="type in ['Desayuno', 'Almuerzo', 'Cena', 'Snack']" :key="type">
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="font-bold text-xs uppercase tracking-wider text-slate-600" x-text="type"></span>
+                                    <span class="text-xs font-black text-amber-600" x-text="getCaloriesByMealType(type) + ' kcal'"></span>
+                                </div>
+                                <div class="space-y-2">
+                                    <template x-for="item in filteredFoodLogs.filter(f => f.mealType === type)" :key="item.id">
+                                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl text-xs border border-slate-200 shadow-sm">
+                                            <div>
+                                                <p class="font-bold text-slate-900" x-text="item.name"></p>
+                                                <p class="text-[10px] text-slate-500" x-text="item.portion + ' • P:' + (item.protein||0) + 'g C:' + (item.carbs||0) + 'g G:' + (item.fats||0) + 'g'"></p>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-bold text-amber-600" x-text="item.calories + ' kcal'"></span>
+                                                <button @click="deleteFoodLog(item.id)" class="text-slate-400 hover:text-rose-500 p-1">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: FOOTBALL & WORKOUTS -->
+            <div x-show="activeTab === 'workout'" x-transition:enter.duration.300ms class="space-y-6">
+                <!-- Football Banner -->
+                <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 p-6 rounded-3xl text-white shadow-lg shadow-blue-500/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <span class="text-xs font-bold text-blue-100 uppercase tracking-wider">Meta Deportiva</span>
+                        <h3 class="text-2xl font-black text-white mt-1">Fútbol 2 veces por Semana ⚽</h3>
+                        <p class="text-xs text-blue-100 mt-1">Progreso actual de la semana en curso</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                            <span class="text-3xl font-black text-white" x-text="weeklyFootballCount + ' / 2'"></span>
+                            <span class="text-[10px] block text-blue-100">Esta semana</span>
+                        </div>
+                        <button @click="addQuickFootball()" class="px-4 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-2xl text-xs font-extrabold transition shadow-md flex items-center space-x-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>+1 Partido</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Workout Form -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
+                    <h3 class="font-bold text-slate-900 text-base mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-dumbbell text-blue-600"></i>
+                        <span>Registrar Entrenamiento o Actividad</span>
+                    </h3>
+                    <form @submit.prevent="addWorkoutLog()" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Tipo de Actividad</label>
+                                <select x-model="newWorkout.type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                                    <option value="Partido de Fútbol">Partido de Fútbol ⚽</option>
+                                    <option value="Entrenamiento Gimnasio">Entrenamiento Gimnasio 🏋️‍♂️</option>
+                                    <option value="Cardio / Trote">Cardio / Trote 🏃‍♂️</option>
+                                    <option value="Ciclismo / Natación">Ciclismo / Natación 🚴‍♂️</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Fecha</label>
+                                <input type="date" x-model="newWorkout.date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Notas / Observaciones</label>
+                            <input type="text" x-model="newWorkout.notes" placeholder="Ej: 2 goles anotados, buena intensidad 60 min" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition">
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-md shadow-blue-600/20">
+                            Guardar Entrenamiento
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Mobile Bottom Navigation Bar -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 border-t border-slate-200 backdrop-blur-lg px-2 py-2 flex justify-around items-center z-40 shadow-lg">
+            <template x-for="tab in tabs" :key="tab.id">
+                <button @click="activeTab = tab.id" 
+                        :class="activeTab === tab.id ? 'text-emerald-600 font-bold' : 'text-slate-400'"
+                        class="flex flex-col items-center justify-center w-full py-1 transition">
+                    <i :class="tab.icon" class="text-base"></i>
+                    <span class="text-[9px] font-semibold mt-1" x-text="tab.shortName"></span>
+                </button>
+            </template>
+        </nav>
     </div>
-  </main>
-  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 flex justify-around px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-2"><template x-for="item in tabs" :key="item.id"><button class="flex-1 flex flex-col items-center gap-1 py-1 text-[10px] font-semibold" :class="tab===item.id?'text-emerald-700':'text-slate-400'" @click="tab=item.id"><span class="text-xl" x-text="item.icon"></span><span x-text="item.short"></span></button></template></nav>
-</div>
-<script type="module" src="/src/main.js"></script>
+
+    <!-- Quick Football Modal -->
+    <div x-show="openQuickFootballModal" x-cloak class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div @click.outside="openQuickFootballModal = false" class="bg-white border border-slate-200 p-6 rounded-3xl max-w-sm w-full shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">⚽ +1 Partido de Fútbol</h3>
+            <p class="text-xs text-slate-500 mb-4">¿Jugaste un partido hoy? Registra tu sesión para sumar a tu meta de 2 partidos/semana.</p>
+            <div class="flex space-x-3">
+                <button @click="openQuickFootballModal = false" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 hover:bg-slate-200 transition">Cancelar</button>
+                <button @click="addQuickFootball(); openQuickFootballModal = false" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alpine.js Application Logic -->
+    <script>
+        function appData() {
+            return {
+                activeTab: 'dashboard',
+                timelineFilter: 'all',
+                openQuickFootballModal: false,
+                chartInstance: null,
+
+                tabs: [
+                    { id: 'dashboard', name: 'Dashboard', shortName: 'Inicio', icon: 'fa-solid fa-chart-pie' },
+                    { id: 'timeline', name: 'Historial', shortName: 'Muro', icon: 'fa-solid fa-clock-rotate-left' },
+                    { id: 'weight', name: 'Peso y Talla', shortName: 'Peso', icon: 'fa-solid fa-weight-scale' },
+                    { id: 'food', name: 'Nutrición', shortName: 'Comidas', icon: 'fa-solid fa-utensils' },
+                    { id: 'workout', name: 'Fútbol & Deporte', shortName: 'Deporte', icon: 'fa-solid fa-futbol' }
+                ],
+
+                // Persistent Data
+                height: Alpine.$persist(175).as('fit_pro_height'),
+                calorieGoal: Alpine.$persist(2200).as('fit_pro_cal_goal'),
+                weightLogs: Alpine.$persist([]).as('fit_pro_weight'),
+                foodLogs: Alpine.$persist([]).as('fit_pro_food'),
+                workoutLogs: Alpine.$persist([]).as('fit_pro_workout'),
+
+                // Models
+                newWeight: { value: '', date: new Date().toISOString().split('T')[0] },
+                newFood: { name: '', mealType: 'Almuerzo', portion: '', calories: '', protein: '', carbs: '', fats: '', date: new Date().toISOString().split('T')[0] },
+                newWorkout: { type: 'Partido de Fútbol', date: new Date().toISOString().split('T')[0], notes: '' },
+                selectedFoodDate: new Date().toISOString().split('T')[0],
+
+                initApp() {
+                    // Seed Demo Data if completely empty
+                    if (this.weightLogs.length === 0) {
+                        const today = new Date();
+                        const daysAgo = (d) => {
+                            const date = new Date(today);
+                            date.setDate(date.getDate() - d);
+                            return date.toISOString().split('T')[0];
+                        };
+
+                        this.weightLogs = [
+                            { id: 1, value: 78.5, date: daysAgo(28) },
+                            { id: 2, value: 77.8, date: daysAgo(21) },
+                            { id: 3, value: 76.9, date: daysAgo(14) },
+                            { id: 4, value: 76.1, date: daysAgo(7) },
+                            { id: 5, value: 75.4, date: daysAgo(0) }
+                        ];
+
+                        this.foodLogs = [
+                            { id: 101, name: 'Avena con Proteína y Frutas', mealType: 'Desayuno', portion: '1 bowl', calories: 420, protein: 28, carbs: 55, fats: 8, date: daysAgo(0) },
+                            { id: 102, name: 'Pechuga a la Plancha con Arroz', mealType: 'Almuerzo', portion: '1 plato', calories: 650, protein: 48, carbs: 65, fats: 12, date: daysAgo(0) },
+                            { id: 103, name: 'Batido de Proteína', mealType: 'Snack', portion: '1 vaso', calories: 200, protein: 25, carbs: 5, fats: 3, date: daysAgo(0) }
+                        ];
+
+                        this.workoutLogs = [
+                            { id: 201, type: 'Partido de Fútbol', date: daysAgo(2), notes: 'Partido de la semana #1' },
+                            { id: 202, type: 'Partido de Fútbol', date: daysAgo(0), notes: 'Partido de la semana #2' },
+                            { id: 203, type: 'Entrenamiento Gimnasio', date: daysAgo(4), notes: 'Piernas y Abdomen' }
+                        ];
+                    }
+
+                    this.$nextTick(() => {
+                        this.renderChart();
+                    });
+                },
+
+                // Computations
+                get sortedWeightLogs() {
+                    return [...this.weightLogs].sort((a, b) => new Date(b.date) - new Date(a.date));
+                },
+                get latestWeight() {
+                    return this.sortedWeightLogs.length > 0 ? this.sortedWeightLogs[0].value : null;
+                },
+                get initialWeight() {
+                    const asc = [...this.weightLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    return asc.length > 0 ? asc[0].value : null;
+                },
+                get weightChangeFromStart() {
+                    if (!this.latestWeight || !this.initialWeight) return 0;
+                    return this.latestWeight - this.initialWeight;
+                },
+                get weightChangePercent() {
+                    if (!this.initialWeight) return 0;
+                    return (this.weightChangeFromStart / this.initialWeight) * 100;
+                },
+                get weightChangeFromLast() {
+                    if (this.sortedWeightLogs.length < 2) return 0;
+                    return this.sortedWeightLogs[0].value - this.sortedWeightLogs[1].value;
+                },
+                get weeklyWeightRate() {
+                    if (this.sortedWeightLogs.length < 2) return 0;
+                    const asc = [...this.weightLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    const first = asc[0];
+                    const last = asc[asc.length - 1];
+                    const diffDays = Math.max((new Date(last.date) - new Date(first.date)) / (1000 * 60 * 60 * 24), 1);
+                    return ((last.value - first.value) / diffDays) * 7;
+                },
+                get bmi() {
+                    if (!this.latestWeight || !this.height) return null;
+                    const meters = this.height / 100;
+                    return (this.latestWeight / (meters * meters)).toFixed(1);
+                },
+                // Classification according to MINSAL Chile / WHO standards
+                getBmiInfo(bmiVal) {
+                    const val = parseFloat(bmiVal);
+                    if (!val || isNaN(val)) return { category: 'Sin Datos', badgeClass: 'bg-slate-100 text-slate-600 border-slate-200' };
+                    
+                    if (val < 18.5) {
+                        return { category: 'Bajo Peso / Enflaquecido', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200' };
+                    } else if (val <= 24.9) {
+                        return { category: 'Normal / Eutrófico', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+                    } else if (val <= 29.9) {
+                        return { category: 'Sobrepeso / Preobesidad', badgeClass: 'bg-amber-50 text-amber-800 border-amber-200' };
+                    } else if (val <= 34.9) {
+                        return { category: 'Obesidad Grado I', badgeClass: 'bg-orange-50 text-orange-700 border-orange-200' };
+                    } else if (val <= 39.9) {
+                        return { category: 'Obesidad Grado II', badgeClass: 'bg-rose-50 text-rose-700 border-rose-200' };
+                    } else {
+                        return { category: 'Obesidad Grado III / MórBida', badgeClass: 'bg-red-100 text-red-800 border-red-300' };
+                    }
+                },
+                get bmiCategory() {
+                    return this.getBmiInfo(this.bmi).category;
+                },
+                get bmiBadgeClass() {
+                    return this.getBmiInfo(this.bmi).badgeClass;
+                },
+                calculateBMI(w) {
+                    if (!w || !this.height) return null;
+                    const meters = this.height / 100;
+                    return (w / (meters * meters)).toFixed(1);
+                },
+
+                // Food / Macros
+                get todayFoodLogs() {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    return this.foodLogs.filter(f => f.date === todayStr);
+                },
+                get todayCalories() {
+                    return this.todayFoodLogs.reduce((sum, f) => sum + (parseInt(f.calories) || 0), 0);
+                },
+                get todayMacros() {
+                    return this.todayFoodLogs.reduce((acc, f) => {
+                        acc.protein += parseInt(f.protein) || 0;
+                        acc.carbs += parseInt(f.carbs) || 0;
+                        acc.fats += parseInt(f.fats) || 0;
+                        return acc;
+                    }, { protein: 0, carbs: 0, fats: 0 });
+                },
+                get filteredFoodLogs() {
+                    return this.foodLogs.filter(f => f.date === this.selectedFoodDate);
+                },
+                get selectedDateCalories() {
+                    return this.filteredFoodLogs.reduce((sum, f) => sum + (parseInt(f.calories) || 0), 0);
+                },
+                getCaloriesByMealType(mealType) {
+                    return this.filteredFoodLogs
+                        .filter(f => f.mealType === mealType)
+                        .reduce((sum, f) => sum + (parseInt(f.calories) || 0), 0);
+                },
+
+                // Workouts
+                get weeklyFootballCount() {
+                    const now = new Date();
+                    const day = now.getDay();
+                    const distToMon = (day === 0 ? -6 : 1) - day;
+                    const monday = new Date(now);
+                    monday.setDate(now.getDate() + distToMon);
+                    monday.setHours(0,0,0,0);
+
+                    return this.workoutLogs.filter(w => {
+                        if (w.type !== 'Partido de Fútbol') return false;
+                        const wDate = new Date(w.date + 'T00:00:00');
+                        return wDate >= monday;
+                    }).length;
+                },
+
+                // Timeline
+                get unifiedTimeline() {
+                    const list = [];
+                    this.weightLogs.forEach(w => list.push({
+                        uniqueId: 'w_' + w.id,
+                        id: w.id,
+                        category: 'weight',
+                        date: w.date,
+                        title: `Peso registrado: ${w.value} kg`,
+                        subtitle: `IMC: ${this.calculateBMI(w.value) || '--'}`
+                    }));
+                    this.foodLogs.forEach(f => list.push({
+                        uniqueId: 'f_' + f.id,
+                        id: f.id,
+                        category: 'food',
+                        date: f.date,
+                        title: `${f.name} (${f.calories} kcal)`,
+                        subtitle: `${f.mealType} • ${f.portion}`
+                    }));
+                    this.workoutLogs.forEach(k => list.push({
+                        uniqueId: 'k_' + k.id,
+                        id: k.id,
+                        category: 'workout',
+                        type: k.type,
+                        date: k.date,
+                        title: k.type,
+                        subtitle: k.notes || 'Sin observaciones'
+                    }));
+
+                    return list.sort((a,b) => new Date(b.date) - new Date(a.date));
+                },
+                get filteredTimeline() {
+                    if (this.timelineFilter === 'all') return this.unifiedTimeline;
+                    return this.unifiedTimeline.filter(t => t.category === this.timelineFilter);
+                },
+
+                // Chart.js Graph Handler
+                renderChart() {
+                    const ctx = document.getElementById('weightChart');
+                    if (!ctx) return;
+
+                    const sorted = [...this.weightLogs].sort((a,b) => new Date(a.date) - new Date(b.date));
+                    const labels = sorted.map(s => this.formatDate(s.date));
+                    const data = sorted.map(s => s.value);
+
+                    if (this.chartInstance) {
+                        this.chartInstance.destroy();
+                    }
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Peso (kg)',
+                                data: data,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointBackgroundColor: '#10b981',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: '#f1f5f9' },
+                                    ticks: { color: '#64748b', font: { size: 10 } }
+                                },
+                                y: {
+                                    grid: { color: '#f1f5f9' },
+                                    ticks: { color: '#64748b', font: { size: 10 } }
+                                }
+                            }
+                        }
+                    });
+                },
+                updateChart() {
+                    this.$nextTick(() => this.renderChart());
+                },
+
+                // Actions
+                addWeightLog() {
+                    if (!this.newWeight.value || !this.newWeight.date) return;
+                    this.weightLogs.push({ id: Date.now(), value: parseFloat(this.newWeight.value), date: this.newWeight.date });
+                    this.newWeight.value = '';
+                    this.updateChart();
+                },
+                deleteWeightLog(id) {
+                    this.weightLogs = this.weightLogs.filter(w => w.id !== id);
+                    this.updateChart();
+                },
+                addFoodLog() {
+                    if (!this.newFood.name || !this.newFood.calories) return;
+                    this.foodLogs.push({
+                        id: Date.now(),
+                        name: this.newFood.name,
+                        mealType: this.newFood.mealType,
+                        portion: this.newFood.portion || '1 porción',
+                        calories: parseInt(this.newFood.calories),
+                        protein: parseInt(this.newFood.protein) || 0,
+                        carbs: parseInt(this.newFood.carbs) || 0,
+                        fats: parseInt(this.newFood.fats) || 0,
+                        date: this.newFood.date
+                    });
+                    this.selectedFoodDate = this.newFood.date;
+                    this.newFood.name = '';
+                    this.newFood.calories = '';
+                },
+                deleteFoodLog(id) {
+                    this.foodLogs = this.foodLogs.filter(f => f.id !== id);
+                },
+                addWorkoutLog() {
+                    if (!this.newWorkout.date) return;
+                    this.workoutLogs.push({
+                        id: Date.now(),
+                        type: this.newWorkout.type,
+                        date: this.newWorkout.date,
+                        notes: this.newWorkout.notes
+                    });
+                    this.newWorkout.notes = '';
+                },
+                addQuickFootball() {
+                    const today = new Date().toISOString().split('T')[0];
+                    this.workoutLogs.push({
+                        id: Date.now(),
+                        type: 'Partido de Fútbol',
+                        date: today,
+                        notes: 'Partido rápido registrado'
+                    });
+                },
+                deleteItem(item) {
+                    if (item.category === 'weight') this.deleteWeightLog(item.id);
+                    if (item.category === 'food') this.deleteFoodLog(item.id);
+                    if (item.category === 'workout') this.workoutLogs = this.workoutLogs.filter(w => w.id !== item.id);
+                },
+
+                // Utilities
+                formatDate(dateStr) {
+                    if (!dateStr) return '';
+                    const [y, m, d] = dateStr.split('-');
+                    return `${d}/${m}/${y}`;
+                },
+                exportData() {
+                    const data = { height: this.height, weightLogs: this.weightLogs, foodLogs: this.foodLogs, workoutLogs: this.workoutLogs };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `fit_tracker_backup.json`;
+                    a.click();
+                },
+                importData(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const parsed = JSON.parse(e.target.result);
+                            if (parsed.height) this.height = parsed.height;
+                            if (parsed.weightLogs) this.weightLogs = parsed.weightLogs;
+                            if (parsed.foodLogs) this.foodLogs = parsed.foodLogs;
+                            if (parsed.workoutLogs) this.workoutLogs = parsed.workoutLogs;
+                            this.updateChart();
+                        } catch (err) {
+                            console.error('Error importando:', err);
+                        }
+                    };
+                    reader.readAsText(file);
+                },
+                resetData() {
+                    this.weightLogs = [];
+                    this.foodLogs = [];
+                    this.workoutLogs = [];
+                    this.initApp();
+                }
+            };
+        }
+    </script>
 </body>
 </html>
