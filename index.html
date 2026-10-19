@@ -457,7 +457,14 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Nombre Alimento</label>
-                                <input type="text" x-model="newFood.name" required placeholder="Ej: Pechuga a la Plancha" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                                <select x-model="newFood.catalogId" @change="selectCatalogFood()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                                    <option value="">Selecciona un alimento</option>
+                                    <template x-for="food in foodCatalog" :key="food.id">
+                                        <option :value="food.id" x-text="food.name + ' · ' + food.unitCalories + ' kcal/' + food.unit"></option>
+                                    </template>
+                                    <option value="custom">Otro alimento (ingreso manual)</option>
+                                </select>
+                                <input type="text" x-model="newFood.name" required placeholder="Nombre personalizado" class="mt-2 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Tipo de Comida</label>
@@ -470,7 +477,8 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Porción / Cantidad</label>
-                                <input type="text" x-model="newFood.portion" placeholder="Ej: 200g o 1 plato" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                                <input type="number" min="0.25" step="0.25" x-model.number="newFood.quantity" @input="calculateFoodCalories()" required placeholder="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                                <input type="text" x-model="newFood.portion" placeholder="Ej: 1 unidad" class="mt-2 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
                             </div>
                         </div>
 
@@ -478,7 +486,7 @@
                         <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold text-amber-600 mb-1">Calorías (kcal)</label>
-                                <input type="number" x-model.number="newFood.calories" required placeholder="350" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
+                                <input type="number" x-model.number="newFood.calories" required :readonly="newFood.catalogId !== 'custom'" placeholder="Selecciona alimento" class="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Proteínas (g)</label>
@@ -497,6 +505,10 @@
                                 <input type="date" x-model="newFood.date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition">
                             </div>
                         </div>
+
+                        <p class="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2" x-show="newFood.catalogId && newFood.catalogId !== 'custom'">
+                            Cálculo automático: <strong x-text="newFood.quantity + ' × ' + selectedCatalogCalories + ' = ' + (newFood.calories || 0) + ' kcal'"></strong>. Valores referenciales: confirma el etiquetado.
+                        </p>
 
                         <button type="submit" class="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm transition shadow-md shadow-amber-500/20">
                             + Agregar Alimento
@@ -641,6 +653,20 @@
                     { id: 'workout', name: 'Fútbol & Deporte', shortName: 'Deporte', icon: 'fa-solid fa-futbol' }
                 ],
 
+                // Valores referenciales por unidad/porciÃ³n para alimentos habituales en Chile.
+                foodCatalog: [
+                    { id: 'fajita-pollo', name: 'Fajita de pollo', unit: 'unidad', unitCalories: 320, protein: 24, carbs: 31, fats: 11 },
+                    { id: 'empanada-pino', name: 'Empanada de pino', unit: 'unidad', unitCalories: 450, protein: 18, carbs: 45, fats: 22 },
+                    { id: 'pan-marraqueta', name: 'Pan marraqueta', unit: 'unidad', unitCalories: 270, protein: 9, carbs: 54, fats: 2 },
+                    { id: 'huevo', name: 'Huevo', unit: 'unidad', unitCalories: 78, protein: 6, carbs: 1, fats: 5 },
+                    { id: 'platano', name: 'PlÃ¡tano mediano', unit: 'unidad', unitCalories: 105, protein: 1, carbs: 27, fats: 0 },
+                    { id: 'palta', name: 'Palta', unit: '1/2 unidad', unitCalories: 160, protein: 2, carbs: 9, fats: 15 },
+                    { id: 'yogur', name: 'Yogur natural', unit: 'envase', unitCalories: 120, protein: 6, carbs: 15, fats: 4 },
+                    { id: 'arroz', name: 'Arroz cocido', unit: 'taza', unitCalories: 205, protein: 4, carbs: 45, fats: 0 },
+                    { id: 'pollo', name: 'Pechuga de pollo', unit: '100 g', unitCalories: 165, protein: 31, carbs: 0, fats: 4 },
+                    { id: 'leche', name: 'Leche descremada', unit: 'vaso', unitCalories: 90, protein: 9, carbs: 12, fats: 0 }
+                ],
+
                 // Persistent Data
                 height: Alpine.$persist(175).as('fit_pro_height'),
                 calorieGoal: Alpine.$persist(2200).as('fit_pro_cal_goal'),
@@ -650,7 +676,7 @@
 
                 // Models
                 newWeight: { value: '', date: new Date().toISOString().split('T')[0] },
-                newFood: { name: '', mealType: 'Almuerzo', portion: '', calories: '', protein: '', carbs: '', fats: '', date: new Date().toISOString().split('T')[0] },
+                newFood: { catalogId: '', name: '', mealType: 'Almuerzo', portion: '', quantity: 1, calories: '', protein: '', carbs: '', fats: '', date: new Date().toISOString().split('T')[0] },
                 newWorkout: { type: 'Partido de Fútbol', date: new Date().toISOString().split('T')[0], notes: '' },
                 selectedFoodDate: new Date().toISOString().split('T')[0],
 
@@ -755,6 +781,33 @@
                     if (!w || !this.height) return null;
                     const meters = this.height / 100;
                     return (w / (meters * meters)).toFixed(1);
+                },
+
+                get selectedCatalogFood() {
+                    return this.foodCatalog.find(food => food.id === this.newFood.catalogId) || null;
+                },
+                get selectedCatalogCalories() {
+                    return this.selectedCatalogFood ? this.selectedCatalogFood.unitCalories : 0;
+                },
+                selectCatalogFood() {
+                    const food = this.selectedCatalogFood;
+                    if (!food) {
+                        this.newFood.calories = '';
+                        return;
+                    }
+                    this.newFood.name = food.name;
+                    this.newFood.portion = `${this.newFood.quantity} ${food.unit}`;
+                    this.newFood.protein = food.protein;
+                    this.newFood.carbs = food.carbs;
+                    this.newFood.fats = food.fats;
+                    this.calculateFoodCalories();
+                },
+                calculateFoodCalories() {
+                    const food = this.selectedCatalogFood;
+                    const quantity = Math.max(0, Number(this.newFood.quantity) || 0);
+                    if (!food) return;
+                    this.newFood.calories = Math.round(food.unitCalories * quantity);
+                    this.newFood.portion = `${quantity} ${food.unit}`;
                 },
 
                 // Food / Macros
@@ -909,6 +962,8 @@
                         name: this.newFood.name,
                         mealType: this.newFood.mealType,
                         portion: this.newFood.portion || '1 porción',
+                        quantity: Number(this.newFood.quantity) || 1,
+                        catalogId: this.newFood.catalogId || 'custom',
                         calories: parseInt(this.newFood.calories),
                         protein: parseInt(this.newFood.protein) || 0,
                         carbs: parseInt(this.newFood.carbs) || 0,
@@ -917,7 +972,13 @@
                     });
                     this.selectedFoodDate = this.newFood.date;
                     this.newFood.name = '';
+                    this.newFood.catalogId = '';
+                    this.newFood.quantity = 1;
+                    this.newFood.portion = '';
                     this.newFood.calories = '';
+                    this.newFood.protein = '';
+                    this.newFood.carbs = '';
+                    this.newFood.fats = '';
                 },
                 deleteFoodLog(id) {
                     this.foodLogs = this.foodLogs.filter(f => f.id !== id);
