@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
+  "homepage": "https://mpedrerosgn.github.io/AplicacionMichael/",
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
     "alpinejs": "^3.14.9"
